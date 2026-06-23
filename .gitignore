@@ -1,0 +1,9 @@
+node_modules/
+/dist/
+/.env*
+/.npmrc
+/.pnp.*
+/.cache
+.DS_Store
+.vscode/
+.idea/
