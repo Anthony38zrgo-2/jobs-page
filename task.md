@@ -1,0 +1,16 @@
+- [ ] Crear store global en `src/store/state.ts`
+- [ ] Configurar router en `src/router/index.ts`
+- [ ] Implementar `MainLayout.vue`
+- [ ] Implementar `CategorySelector.vue`
+- [ ] Implementar `JobRequestForm.vue`
+- [ ] Implementar `MockMap.vue`
+- [ ] Implementar `BiddingRadar.vue`
+- [ ] Implementar `TechnicianCard.vue`
+- [ ] Implementar `SecureChat.vue`
+- [ ] Implementar `ServiceValidation.vue`
+- [ ] Implementar `App.vue`
+- [ ] Implementar `main.ts`
+- [ ] Añadir Material Icons a `index.html` o `main.ts`
+- [ ] Verificar estilos Tailwind en `index.css`
+- [ ] Probar flujo completo manualmente
+- [ ] Preparar despliegue con `npm run build`
