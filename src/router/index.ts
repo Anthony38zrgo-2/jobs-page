@@ -5,6 +5,9 @@ import JobRequestForm     from '@/components/forms/JobRequestForm.vue'
 import BiddingRadar       from '@/components/radar/BiddingRadar.vue'
 import SecureChat         from '@/components/chat/SecureChat.vue'
 import ServiceValidation  from '@/components/validation/ServiceValidation.vue'
+import SpecialistCatalog  from '@/views/client/SpecialistCatalog.vue'
+import ServiceHistory     from '@/views/client/ServiceHistory.vue'
+import TechnicianRegistration from '@/views/tech/TechnicianRegistration.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,6 +17,9 @@ const router = createRouter({
     { path: '/radar',      component: BiddingRadar      },
     { path: '/chat',       component: SecureChat        },
     { path: '/validation', component: ServiceValidation },
+    { path: '/specialists', component: SpecialistCatalog },
+    { path: '/history', component: ServiceHistory },
+    { path: '/technician-registration', component: TechnicianRegistration },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })

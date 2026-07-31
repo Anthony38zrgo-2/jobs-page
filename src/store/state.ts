@@ -28,7 +28,26 @@ export interface Message {
   timestamp: Date
 }
 
-export type ViewState = 'home' | 'request' | 'radar' | 'chat' | 'validation'
+export interface ServiceRecord {
+  id: number
+  date: string
+  category: string
+  technician: string
+  technicianAvatar: string
+  price: number
+  rating: number
+  recommendation: string
+}
+
+export type ViewState =
+  | 'home'
+  | 'request'
+  | 'radar'
+  | 'chat'
+  | 'validation'
+  | 'catalog'
+  | 'history'
+  | 'technician-registration'
 
 // ─── Initial state ─────────────────────────────────────────────────────────────
 
@@ -41,6 +60,7 @@ const state = reactive<{
   messages: Message[]
   messageIdCounter: number
   otpCode: string
+  completedServices: ServiceRecord[]
 }>({
   viewState: 'home',
   selectedCategory: null,
@@ -50,6 +70,18 @@ const state = reactive<{
   messages: [],
   messageIdCounter: 0,
   otpCode: '',
+  completedServices: [
+    {
+      id: 1,
+      date: '18 jul 2026',
+      category: 'Gasfitería',
+      technician: 'María Torres',
+      technicianAvatar: 'https://i.pravatar.cc/80?img=47',
+      price: 52,
+      rating: 5,
+      recommendation: 'Puntual y dejó todo limpio.',
+    },
+  ],
 })
 
 // ─── Composable ────────────────────────────────────────────────────────────────
@@ -85,6 +117,26 @@ export const useAppState = () => {
 
     setOtp(code: string) {
       state.otpCode = code
+    },
+
+    addCompletedService(rating: number, recommendation: string) {
+      const tech = state.selectedTechnician
+      if (!tech) return
+
+      state.completedServices.unshift({
+        id: Date.now(),
+        date: new Intl.DateTimeFormat('es-PE', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        }).format(new Date()),
+        category: state.selectedCategory?.name ?? 'Servicio',
+        technician: tech.name,
+        technicianAvatar: tech.avatarUrl,
+        price: tech.price,
+        rating,
+        recommendation,
+      })
     },
 
     resetAll() {

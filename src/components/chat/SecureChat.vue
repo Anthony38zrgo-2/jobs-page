@@ -12,6 +12,67 @@
     </Transition>
   </Teleport>
 
+  <Teleport to="body">
+    <div
+      v-if="activeSafetyTool"
+      class="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
+      @click.self="activeSafetyTool = null"
+    >
+      <div class="w-full max-w-md rounded-t-2xl bg-white p-5">
+        <template v-if="activeSafetyTool === 'location'">
+          <span class="material-icons text-3xl text-blue-600">share_location</span>
+          <h2 class="mt-2 text-lg font-bold text-slate-800">Compartir ubicación</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Envía a un familiar un enlace simulado con el seguimiento de este servicio.
+          </p>
+          <input
+            v-model="familyContact"
+            type="text"
+            placeholder="Nombre o teléfono del familiar"
+            class="mt-4 w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-blue-500"
+          />
+          <button
+            class="mt-3 w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white disabled:bg-slate-300"
+            :disabled="!familyContact.trim()"
+            @click="shareLocation"
+          >
+            Compartir seguimiento
+          </button>
+        </template>
+
+        <template v-else-if="activeSafetyTool === 'qr'">
+          <div class="text-center">
+            <span class="material-icons text-3xl text-teal-600">qr_code_2</span>
+            <h2 class="mt-2 text-lg font-bold text-slate-800">Validar al técnico</h2>
+            <p class="mt-1 text-sm text-slate-500">Escanea el código y compara el nombre antes de permitir el ingreso.</p>
+            <img
+              :src="qrImage"
+              alt="Código QR de validación del técnico"
+              class="mx-auto mt-4 h-40 w-40 rounded-xl border border-slate-200 p-2"
+            />
+            <p class="mt-3 text-sm font-bold text-slate-800">{{ tech?.name }}</p>
+            <p class="text-xs text-emerald-600">Identidad verificada · ID JP-{{ tech?.id ?? '00' }}</p>
+          </div>
+        </template>
+
+        <template v-else>
+          <span class="material-icons text-4xl text-rose-600">emergency</span>
+          <h2 class="mt-2 text-lg font-bold text-slate-800">Botón de emergencia</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Esta acción avisará a tu contacto de confianza y a soporte con la ubicación del servicio.
+          </p>
+          <button class="mt-4 w-full rounded-xl bg-rose-600 py-3 text-sm font-bold text-white" @click="sendEmergency">
+            Confirmar alerta
+          </button>
+        </template>
+
+        <button class="mt-2 w-full rounded-xl bg-slate-100 py-3 text-sm font-semibold text-slate-600" @click="activeSafetyTool = null">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </Teleport>
+
   <div class="flex flex-col bg-white min-h-screen max-w-md mx-auto shadow-2xl overflow-hidden">
 
     <!-- ── Fixed security banner ────────────────────────────────────────── -->
@@ -44,6 +105,38 @@
         <span class="material-icons text-base">verified</span>
         <span class="hidden sm:inline font-semibold">Verificado</span>
       </div>
+    </div>
+
+    <div class="grid shrink-0 grid-cols-3 gap-2 border-b border-slate-100 bg-white px-4 py-3">
+      <button
+        class="rounded-xl bg-blue-50 p-2 text-center text-blue-700"
+        @click="activeSafetyTool = 'location'"
+      >
+        <span class="material-icons block text-xl">share_location</span>
+        <span class="text-[10px] font-bold">Compartir ubicación</span>
+      </button>
+      <button
+        class="rounded-xl bg-teal-50 p-2 text-center text-teal-700"
+        @click="activeSafetyTool = 'qr'"
+      >
+        <span class="material-icons block text-xl">qr_code_2</span>
+        <span class="text-[10px] font-bold">Validar QR</span>
+      </button>
+      <button
+        class="rounded-xl bg-rose-50 p-2 text-center text-rose-700"
+        @click="activeSafetyTool = 'emergency'"
+      >
+        <span class="material-icons block text-xl">emergency</span>
+        <span class="text-[10px] font-bold">Emergencia</span>
+      </button>
+    </div>
+
+    <div
+      v-if="safetyNotice"
+      class="shrink-0 border-b px-4 py-2 text-center text-xs font-semibold"
+      :class="emergencySent ? 'border-rose-200 bg-rose-100 text-rose-800' : 'border-blue-200 bg-blue-100 text-blue-800'"
+    >
+      {{ safetyNotice }}
     </div>
 
     <!-- ── Messages ──────────────────────────────────────────────────────── -->
@@ -156,8 +249,29 @@ const draft = ref('')
 const techTyping = ref(false)
 const showBlockAlert = ref(false)
 const messagesContainer = ref<HTMLElement | null>(null)
+const activeSafetyTool = ref<null | 'location' | 'qr' | 'emergency'>(null)
+const familyContact = ref('')
+const safetyNotice = ref('')
+const emergencySent = ref(false)
 let alertTimer: ReturnType<typeof setTimeout>
 let sentCount = 0
+
+const qrImage = computed(() => {
+  const validationData = encodeURIComponent(`jobspage|tecnico:${tech.value?.id ?? 0}|verificado`)
+  return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${validationData}`
+})
+
+function shareLocation() {
+  safetyNotice.value = `Seguimiento compartido con ${familyContact.value.trim()}.`
+  emergencySent.value = false
+  activeSafetyTool.value = null
+}
+
+function sendEmergency() {
+  safetyNotice.value = 'Alerta enviada a soporte y a tu contacto de confianza.'
+  emergencySent.value = true
+  activeSafetyTool.value = null
+}
 
 // ─── Anti-bypass filter ──────────────────────────────────────────────────────
 const BLOCKED_WORDS = [

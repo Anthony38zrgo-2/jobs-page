@@ -137,26 +137,61 @@
             Comisión de la plataforma registrada
           </div>
 
-          <!-- Confetti dots (CSS only) -->
-          <div class="relative w-full h-16 overflow-hidden pointer-events-none">
-            <div
-              v-for="(dot, i) in confettiDots"
-              :key="i"
-              class="absolute w-2 h-2 rounded-full"
-              :class="dot.color"
-              :style="{ left: dot.x, top: dot.y, animationDelay: dot.delay }"
-              style="animation: confettiFall 1s ease-out forwards;"
-            ></div>
+          <div v-if="!feedbackSaved" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left">
+            <h3 class="text-sm font-bold text-slate-800">Califica el servicio</h3>
+            <p class="mt-1 text-xs text-slate-500">Tu evaluación se añadirá al historial del técnico.</p>
+            <div class="mt-3 flex justify-center gap-1">
+              <button
+                v-for="star in 5"
+                :key="star"
+                type="button"
+                :aria-label="`Calificar con ${star} estrellas`"
+                @click="rating = star"
+              >
+                <span
+                  class="material-icons text-3xl"
+                  :class="star <= rating ? 'text-amber-400' : 'text-slate-300'"
+                >star</span>
+              </button>
+            </div>
+            <label class="mt-3 block text-xs font-semibold text-slate-600">
+              Recomendación
+              <textarea
+                v-model="recommendation"
+                rows="3"
+                placeholder="Ej: Fue puntual y explicó el trabajo realizado."
+                class="mt-1 w-full resize-none rounded-xl border border-slate-200 bg-white p-3 font-normal outline-none focus:border-teal-500"
+              ></textarea>
+            </label>
+            <button
+              class="mt-3 w-full rounded-xl py-3 text-sm font-bold text-white"
+              :class="rating ? 'bg-teal-600' : 'cursor-not-allowed bg-slate-300'"
+              :disabled="!rating"
+              @click="saveFeedback"
+            >
+              Guardar calificación
+            </button>
           </div>
 
-          <!-- Reset button -->
-          <button
-            @click="resetAndGoHome"
-            class="w-full py-4 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-bold text-base shadow-lg shadow-teal-200 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-          >
-            <span class="material-icons">home</span>
-            Volver al Inicio
-          </button>
+          <div v-else class="w-full rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
+            <span class="material-icons mr-1 align-middle text-base">check_circle</span>
+            Calificación y recomendación registradas en tu historial.
+          </div>
+
+          <div v-if="feedbackSaved" class="grid w-full grid-cols-2 gap-2">
+            <button
+              @click="goToHistory"
+              class="rounded-xl border border-teal-600 py-3 text-sm font-bold text-teal-700"
+            >
+              Ver historial
+            </button>
+            <button
+              @click="resetAndGoHome"
+              class="rounded-xl bg-teal-600 py-3 text-sm font-bold text-white"
+            >
+              Volver al inicio
+            </button>
+          </div>
         </div>
       </Transition>
     </div>
@@ -169,7 +204,7 @@ import { useRouter } from 'vue-router'
 import { useAppState } from '@/store/state'
 
 const router = useRouter()
-const { state, setOtp, setViewState, resetAll } = useAppState()
+const { state, setOtp, addCompletedService, resetAll } = useAppState()
 
 const tech = computed(() => state.selectedTechnician)
 
@@ -183,6 +218,9 @@ const inputRefs  = ref<HTMLInputElement[]>([])
 const otpError   = ref(false)
 const validated  = ref(false)
 const showSuccess = ref(false)
+const rating = ref(0)
+const recommendation = ref('')
+const feedbackSaved = ref(false)
 
 const otpComplete = computed(() => otpDigits.value.every(d => d.length === 1))
 
@@ -214,19 +252,21 @@ function confirm() {
   setTimeout(() => { showSuccess.value = true }, 600)
 }
 
-// ─── Confetti dots ────────────────────────────────────────────────────────────
-const confettiColors = ['bg-teal-400','bg-emerald-400','bg-amber-400','bg-rose-400','bg-blue-400']
-const confettiDots = Array.from({ length: 18 }, (_, i) => ({
-  color: confettiColors[i % confettiColors.length],
-  x: `${Math.random() * 100}%`,
-  y: `${Math.random() * 40}%`,
-  delay: `${Math.random() * 0.6}s`,
-}))
+function saveFeedback() {
+  if (!rating.value || feedbackSaved.value) return
+  addCompletedService(rating.value, recommendation.value.trim())
+  feedbackSaved.value = true
+}
 
 // ─── Reset ────────────────────────────────────────────────────────────────────
 function resetAndGoHome() {
   resetAll()
   router.push('/')
+}
+
+function goToHistory() {
+  resetAll()
+  router.push('/history')
 }
 </script>
 

@@ -142,8 +142,9 @@ const showSecurityModal = ref(false)
 
 const securityChecks = [
   { label: 'DNI Verificado', detail: 'Documento de identidad validado con RENIEC' },
-  { label: 'Antecedentes Penales Limpios', detail: 'Consulta realizada en el sistema SIAGE' },
-  { label: 'Evaluación Técnica Aprobada', detail: 'Prueba práctica superada con nota 18/20' },
+  { label: 'Antecedentes revisados', detail: 'Validación de seguridad aprobada' },
+  { label: 'Historial confiable', detail: `${props.technician.jobsCompleted} servicios registrados en la plataforma` },
+  { label: 'Certificación vigente', detail: 'Evaluación técnica y prueba práctica aprobadas' },
 ]
 </script>
 

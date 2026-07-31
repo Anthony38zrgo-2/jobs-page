@@ -33,6 +33,18 @@
 
     <!-- ── Category grid ─────────────────────────────────────────────────── -->
     <div class="flex-1 overflow-y-auto px-5 pb-6">
+      <div class="mb-4 grid grid-cols-3 gap-2">
+        <button
+          v-for="action in quickActions"
+          :key="action.label"
+          class="rounded-xl border border-slate-200 bg-white p-2.5 text-center"
+          @click="router.push(action.path)"
+        >
+          <span class="material-icons text-xl text-teal-600">{{ action.icon }}</span>
+          <span class="mt-1 block text-[10px] font-semibold leading-tight text-slate-600">{{ action.label }}</span>
+        </button>
+      </div>
+
       <div class="grid grid-cols-2 gap-3 mt-2">
         <button
           v-for="cat in categories"
@@ -89,6 +101,11 @@ const router = useRouter()
 const { setCategory, setViewState } = useAppState()
 
 const categories = CATEGORIES
+const quickActions = [
+  { icon: 'groups', label: 'Ver especialistas', path: '/specialists' },
+  { icon: 'history', label: 'Mi historial', path: '/history' },
+  { icon: 'engineering', label: 'Quiero ser técnico', path: '/technician-registration' },
+]
 
 const trustItems = [
   { icon: 'verified_user',  label: 'DNI Verificado' },
