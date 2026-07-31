@@ -13,7 +13,7 @@
           </p>
           <h1 class="text-white text-xl font-extrabold mt-0.5">
             Plataforma de Confianza <br />
-            Tecnicos del Hogar - ConfiaHogar
+            Tecnicos del Hogar - ConfiTec
           </h1>
         </div>
         <!-- Avatar mock -->
