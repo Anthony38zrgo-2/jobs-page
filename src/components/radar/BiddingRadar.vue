@@ -6,7 +6,7 @@
         <span class="material-icons text-slate-600 text-xl">arrow_back</span>
       </button>
       <div class="text-center">
-        <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Buscando</p>
+        <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Solicitud enviada</p>
         <h1 class="text-sm font-bold text-slate-800">{{ selectedCategory?.name ?? 'Técnicos' }}</h1>
       </div>
       <div class="w-9 h-9"></div> <!-- spacer -->
@@ -16,7 +16,7 @@
     <div class="flex-1 overflow-y-auto px-5 py-6 space-y-6">
 
       <!-- ── Radar animation ─────────────────────────────────────────── -->
-      <div class="flex flex-col items-center justify-center pt-2 pb-4">
+      <div v-if="!selectedTechnician" class="flex flex-col items-center justify-center pt-2 pb-4">
         <div class="relative flex items-center justify-center w-40 h-40">
           <!-- Concentric wave rings with staggered animation delay -->
           <div class="absolute w-full h-full rounded-full border border-teal-300 animate-ping opacity-30"></div>
@@ -49,7 +49,7 @@
         <div class="flex items-center gap-2 mb-1">
           <span class="material-icons text-teal-500 text-sm">notifications_active</span>
           <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            {{ bids.length }} oferta{{ bids.length !== 1 ? 's' : '' }} recibida{{ bids.length !== 1 ? 's' : '' }}
+            {{ selectedTechnician ? 'Técnico elegido' : `${bids.length} oferta${bids.length !== 1 ? 's' : ''} recibida${bids.length !== 1 ? 's' : ''}` }}
           </p>
         </div>
         <TransitionGroup name="bid-list" tag="div" class="space-y-3">
@@ -57,6 +57,7 @@
             v-for="tech in bids"
             :key="tech.id"
             :technician="tech"
+            :chosen-only="selectedTechnician !== null"
             @accepted="onAccept"
             @rejected="onReject(tech)"
           />
@@ -78,10 +79,15 @@ const router = useRouter()
 const { state, setTechnician, setViewState } = useAppState()
 
 const selectedCategory = computed(() => state.selectedCategory)
+const selectedTechnician = computed(() => state.selectedTechnician)
 const bids = ref<Technician[]>([])
 const timers: ReturnType<typeof setTimeout>[] = []
 
 onMounted(() => {
+  if (selectedTechnician.value) {
+    bids.value = [selectedTechnician.value]
+    return
+  }
   // Staggered arrival: 1.5s and 3.5s
   timers.push(
     setTimeout(() => { bids.value.push(MOCK_TECHNICIANS[0]) }, 1500),

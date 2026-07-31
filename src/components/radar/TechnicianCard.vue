@@ -102,6 +102,7 @@
       <!-- Action buttons -->
       <div class="flex gap-2 mt-3">
         <button
+          v-if="!chosenOnly"
           @click="$emit('rejected', technician)"
           class="flex-1 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 transition-colors flex items-center justify-center gap-1"
         >
@@ -113,7 +114,7 @@
           class="flex-1 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-md shadow-teal-200 flex items-center justify-center gap-1"
         >
           <span class="material-icons text-base">check</span>
-          Aceptar
+          {{ chosenOnly ? 'Continuar con este técnico' : 'Aceptar' }}
         </button>
       </div>
     </div>
@@ -125,7 +126,9 @@ import { ref, onMounted } from 'vue'
 import type { Technician } from '@/store/state'
 
 // ─── Props / emits ───────────────────────────────────────────────────────────
-const props = defineProps<{ technician: Technician }>()
+const props = withDefaults(defineProps<{ technician: Technician; chosenOnly?: boolean }>(), {
+  chosenOnly: false,
+})
 defineEmits<{
   (e: 'accepted', tech: Technician): void
   (e: 'rejected', tech: Technician): void

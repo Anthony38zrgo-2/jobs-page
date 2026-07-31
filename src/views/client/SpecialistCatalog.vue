@@ -123,36 +123,36 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAppState, type Technician } from '@/store/state'
-import { MOCK_TECHNICIANS } from '@/data/categories'
+import { CATEGORIES, MOCK_TECHNICIANS } from '@/data/categories'
 
 type SpecialistProfile = Technician & {
+  category: string
   experience: string
   certificate: string
   lastReview: string
 }
 
 const router = useRouter()
+const route = useRoute()
 const { setCategory, setTechnician, setViewState } = useAppState()
 const query = ref('')
-const activeFilter = ref('Todos')
-const filters = ['Todos', 'Electricidad', 'Gasfitería', 'Carpintería']
-const filterTerms: Record<string, string> = {
-  Electricidad: 'electri',
-  Gasfitería: 'gasfiter',
-  Carpintería: 'carpinter',
-}
+const requestedSpecialty = typeof route.query.specialty === 'string' ? route.query.specialty : 'Todos'
+const activeFilter = ref(CATEGORIES.some((category) => category.name === requestedSpecialty) ? requestedSpecialty : 'Todos')
+const filters = ['Todos', ...CATEGORIES.map((category) => category.name)]
 
 const profiles: SpecialistProfile[] = [
   {
     ...MOCK_TECHNICIANS[0],
+    category: 'Electricistas',
     experience: '8 años',
     certificate: 'Certificación técnica SENATI · vigente',
     lastReview: 'junio 2026',
   },
   {
     ...MOCK_TECHNICIANS[1],
+    category: 'Gasfiteros',
     specialty: 'Gasfitero certificado',
     experience: '6 años',
     certificate: 'Instalaciones sanitarias SENCICO · vigente',
@@ -161,6 +161,7 @@ const profiles: SpecialistProfile[] = [
   {
     id: 3,
     name: 'María Torres',
+    category: 'Carpinteros',
     specialty: 'Carpintera especialista',
     rating: 4.9,
     jobsCompleted: 224,
@@ -171,6 +172,48 @@ const profiles: SpecialistProfile[] = [
     certificate: 'Carpintería y acabados CAPECO · vigente',
     lastReview: 'julio 2026',
   },
+  {
+    id: 4,
+    name: 'Luis Mendoza',
+    category: 'Albañiles',
+    specialty: 'Albañil especialista',
+    rating: 4.7,
+    jobsCompleted: 146,
+    avatarUrl: 'https://i.pravatar.cc/100?img=11',
+    price: 55,
+    distance: '1.4 km',
+    experience: '7 años',
+    certificate: 'Construcción civil SENCICO · vigente',
+    lastReview: 'julio 2026',
+  },
+  {
+    id: 5,
+    name: 'Ana Rojas',
+    category: 'Melamina',
+    specialty: 'Diseño e instalación en melamina',
+    rating: 4.8,
+    jobsCompleted: 119,
+    avatarUrl: 'https://i.pravatar.cc/100?img=44',
+    price: 65,
+    distance: '2.3 km',
+    experience: '5 años',
+    certificate: 'Diseño de mobiliario técnico · vigente',
+    lastReview: 'junio 2026',
+  },
+  {
+    id: 6,
+    name: 'Diego Salazar',
+    category: 'Vidrios',
+    specialty: 'Instalador de vidrios',
+    rating: 4.6,
+    jobsCompleted: 98,
+    avatarUrl: 'https://i.pravatar.cc/100?img=15',
+    price: 48,
+    distance: '2.7 km',
+    experience: '4 años',
+    certificate: 'Instalación y seguridad en vidrio · vigente',
+    lastReview: 'mayo 2026',
+  },
 ]
 
 const filteredProfiles = computed(() => {
@@ -179,15 +222,16 @@ const filteredProfiles = computed(() => {
     const matchesQuery = !normalizedQuery
       || `${profile.name} ${profile.specialty}`.toLowerCase().includes(normalizedQuery)
     const matchesFilter = activeFilter.value === 'Todos'
-      || profile.specialty.toLowerCase().includes(filterTerms[activeFilter.value])
+      || profile.category === activeFilter.value
     return matchesQuery && matchesFilter
   })
 })
 
 function requestProfile(profile: SpecialistProfile) {
   setTechnician(profile)
-  setCategory({
-    name: profile.specialty,
+  const category = CATEGORIES.find((item) => item.name === profile.category)
+  setCategory(category ?? {
+    name: profile.category,
     icon: 'home_repair_service',
     placeholder: `Describe el trabajo que quieres solicitar a ${profile.name}...`,
   })

@@ -115,73 +115,53 @@
         </div>
       </div>
 
-      <!-- ── Mock Map ──────────────────────────────────────────────────── -->
+      <!-- ── Selected technician location ─────────────────────────────── -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-          Profesionales Cercanos
+          Ubicación en tiempo real
         </label>
-        <div class="relative w-full h-56 bg-slate-200 rounded-2xl overflow-hidden select-none">
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div class="flex items-center gap-3 border-b border-slate-100 p-3">
+            <img :src="selectedTechnician?.avatarUrl" :alt="selectedTechnician?.name" class="h-10 w-10 rounded-xl object-cover" />
+            <div class="flex-1">
+              <p class="text-sm font-bold text-slate-800">{{ selectedTechnician?.name ?? 'Técnico seleccionado' }}</p>
+              <p class="text-xs text-emerald-600">En camino · llegada estimada 10:20 a. m.</p>
+            </div>
+            <span class="material-icons text-emerald-600">verified</span>
+          </div>
 
-          <!-- Street lines (purely decorative) -->
+          <div class="relative h-48 overflow-hidden bg-slate-100 select-none">
           <div class="absolute inset-0">
-            <!-- Horizontal streets -->
-            <div class="absolute top-[30%] left-0 right-0 h-px bg-slate-300"></div>
-            <div class="absolute top-[55%] left-0 right-0 h-px bg-slate-300"></div>
-            <div class="absolute top-[75%] left-0 right-0 h-px bg-slate-300"></div>
-            <!-- Vertical streets -->
-            <div class="absolute left-[25%] top-0 bottom-0 w-px bg-slate-300"></div>
-            <div class="absolute left-[55%] top-0 bottom-0 w-px bg-slate-300"></div>
-            <div class="absolute left-[78%] top-0 bottom-0 w-px bg-slate-300"></div>
-            <!-- City blocks -->
-            <div class="absolute top-[10%] left-[5%] w-[18%] h-[18%] bg-slate-300/50 rounded"></div>
-            <div class="absolute top-[10%] left-[30%] w-[22%] h-[18%] bg-slate-300/50 rounded"></div>
-            <div class="absolute top-[35%] left-[5%] w-[18%] h-[18%] bg-slate-300/50 rounded"></div>
-            <div class="absolute top-[60%] left-[30%] w-[22%] h-[12%] bg-slate-300/50 rounded"></div>
-            <div class="absolute top-[35%] left-[60%] w-[16%] h-[22%] bg-slate-300/50 rounded"></div>
-            <div class="absolute top-[10%] left-[60%] w-[16%] h-[18%] bg-slate-300/50 rounded"></div>
-          </div>
+              <div class="absolute top-[28%] left-0 right-0 h-px bg-white"></div>
+              <div class="absolute top-[62%] left-0 right-0 h-px bg-white"></div>
+              <div class="absolute left-[28%] top-0 bottom-0 w-px bg-white"></div>
+              <div class="absolute left-[68%] top-0 bottom-0 w-px bg-white"></div>
+              <div class="absolute left-[18%] top-[64%] h-1 w-[48%] -rotate-12 rounded-full bg-blue-500"></div>
+              <div class="absolute left-[60%] top-[43%] h-1 w-[20%] rotate-[-38deg] rounded-full bg-blue-500"></div>
+            </div>
 
-          <!-- Map attribution -->
-          <div class="absolute bottom-2 right-2 text-[9px] text-slate-400 bg-white/70 px-1.5 py-0.5 rounded">
-            Mapa simulado
-          </div>
-
-          <!-- User location pin (center) -->
-          <div class="absolute" style="left: 46%; top: 40%;">
-            <div class="relative flex flex-col items-center">
-              <div class="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-md ring-4 ring-blue-200 animate-pulse"></div>
-              <p class="mt-1 text-[9px] bg-white px-1 rounded shadow text-blue-700 font-bold whitespace-nowrap">Tú</p>
+            <div class="absolute left-[15%] top-[58%] text-center">
+              <img :src="selectedTechnician?.avatarUrl" alt="Ubicación del técnico" class="h-10 w-10 rounded-full border-2 border-white object-cover shadow" />
+              <p class="mt-1 rounded bg-white px-1 text-[9px] font-bold text-blue-700">Técnico</p>
+            </div>
+            <div class="absolute right-[15%] top-[24%] text-center">
+              <span class="material-icons rounded-full bg-emerald-500 p-2 text-white shadow">home</span>
+              <p class="mt-1 rounded bg-white px-1 text-[9px] font-bold text-emerald-700">Tu domicilio</p>
+            </div>
+            <div class="absolute bottom-2 right-2 rounded bg-white/80 px-2 py-1 text-[9px] text-slate-400">
+              Seguimiento simulado
             </div>
           </div>
-
-          <!-- Technician pins with tooltips -->
-          <div
-            v-for="pin in MAP_PINS"
-            :key="pin.id"
-            class="absolute cursor-pointer group"
-            :style="{ left: pin.x, top: pin.y }"
+          <button
+            type="button"
+            class="flex w-full items-center justify-center gap-2 border-t border-slate-100 px-3 py-3 text-sm font-bold"
+            :class="locationShared ? 'bg-emerald-50 text-emerald-700' : 'text-blue-700'"
+            @click="locationShared = true"
           >
-            <div class="relative flex flex-col items-center">
-              <!-- Pulse ring -->
-              <span
-                class="material-icons animate-bounce text-2xl drop-shadow-md"
-                :class="pin.color"
-              >location_on</span>
-
-              <!-- Tooltip -->
-              <div
-                class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-medium px-2 py-1 rounded-lg whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 group-focus:opacity-100 pointer-events-none transition-opacity duration-200 z-10"
-              >
-                {{ pin.label }}
-                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
-              </div>
-            </div>
-          </div>
+            <span class="material-icons text-lg">{{ locationShared ? 'check_circle' : 'share_location' }}</span>
+            {{ locationShared ? 'Ubicación compartida con familiares' : 'Compartir ubicación con familiares' }}
+          </button>
         </div>
-        <p class="text-xs text-slate-400 mt-1.5 text-center">
-          <span class="material-icons text-xs align-middle mr-0.5">gps_fixed</span>
-          3 profesionales disponibles en tu zona
-        </p>
       </div>
     </div>
 
@@ -198,7 +178,7 @@
         ]"
       >
         <span class="material-icons text-xl">send</span>
-        Enviar Solicitud
+        Enviar a {{ selectedTechnician?.name ?? 'técnico elegido' }}
       </button>
     </div>
   </div>
@@ -208,13 +188,13 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppState } from '@/store/state'
-import { MAP_PINS } from '@/data/categories'
 
 // ─── State ──────────────────────────────────────────────────────────────────
 const router = useRouter()
 const { state, setJobDescription, setUploadedFile, setViewState } = useAppState()
 
 const selectedCategory = computed(() => state.selectedCategory)
+const selectedTechnician = computed(() => state.selectedTechnician)
 
 const dynamicPlaceholder = computed(() => {
   return selectedCategory.value?.placeholder
@@ -224,6 +204,7 @@ const dynamicPlaceholder = computed(() => {
 const description = ref(state.jobDescription)
 const textareaFocused = ref(false)
 const dragOver = ref(false)
+const locationShared = ref(false)
 
 // ─── File upload logic ───────────────────────────────────────────────────────
 type FileState = null | 'loading' | 'loaded'
