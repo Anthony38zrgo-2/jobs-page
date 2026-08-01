@@ -1,5 +1,35 @@
 <template>
   <div class="flex min-h-screen w-full max-w-md flex-col bg-slate-50 shadow-xl">
+  <Teleport to="body">
+    <Transition name="fade">
+      <div
+        v-if="ratingOpen"
+        class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Calificar al técnico"
+        @click.self="ratingOpen = false"
+      >
+        <div class="w-full max-w-md rounded-t-3xl bg-white p-4 shadow-2xl sm:rounded-3xl">
+          <div class="mb-2 flex justify-end">
+            <button
+              type="button"
+              class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600"
+              aria-label="Cerrar calificación"
+              @click="ratingOpen = false"
+            >
+              <span class="material-icons text-lg">close</span>
+            </button>
+          </div>
+          <TechnicianRating
+            :technician-name="activeService.name"
+            @submitted="saveRating"
+          />
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
     <header class="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-4">
       <button
         class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100"
@@ -62,16 +92,30 @@
           </div>
         </div>
 
-        <div class="mt-3 grid grid-cols-2 gap-2">
-          <button class="rounded-xl bg-blue-50 px-2 py-2.5 text-xs font-bold text-blue-700" @click="locationShared = true">
+        <div class="mt-3 grid grid-cols-3 gap-2">
+          <button type="button" class="rounded-xl bg-blue-50 px-1 py-2.5 text-[11px] font-bold text-blue-700" @click="locationShared = true">
             <span class="material-icons mr-1 align-middle text-base">{{ locationShared ? 'check_circle' : 'share_location' }}</span>
             {{ locationShared ? 'Compartida' : 'Compartir ubicación' }}
           </button>
-          <button class="rounded-xl px-2 py-2.5 text-xs font-bold" :class="emergencySent ? 'bg-rose-100 text-rose-800' : 'bg-rose-600 text-white'" @click="emergencySent = true">
+          <button type="button" class="rounded-xl px-1 py-2.5 text-[11px] font-bold" :class="emergencySent ? 'bg-rose-100 text-rose-800' : 'bg-rose-600 text-white'" @click="emergencySent = true">
             <span class="material-icons mr-1 align-middle text-base">emergency</span>
             {{ emergencySent ? 'Alerta enviada' : 'Emergencia' }}
           </button>
+          <button
+            type="button"
+            class="rounded-xl px-1 py-2.5 text-[11px] font-bold"
+            :class="ratingSaved ? 'bg-amber-100 text-amber-800' : 'bg-amber-500 text-white'"
+            :disabled="ratingSaved"
+            @click="ratingOpen = true"
+          >
+            <span class="material-icons mr-1 align-middle text-base">{{ ratingSaved ? 'check_circle' : 'star' }}</span>
+            {{ ratingSaved ? 'Calificado' : 'Calificar' }}
+          </button>
         </div>
+
+        <p v-if="ratingSaved" class="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-center text-xs font-semibold text-emerald-700">
+          Calificación guardada en tu historial.
+        </p>
       </section>
 
       <div class="flex items-center justify-between pt-1">
@@ -120,13 +164,16 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAppState } from '@/store/state'
+import { useAppState, type TechnicianReview } from '@/store/state'
+import TechnicianRating from '@/components/rating/TechnicianRating.vue'
 
 const router = useRouter()
-const { state } = useAppState()
+const { state, addCompletedService } = useAppState()
 const services = computed(() => state.completedServices)
 const locationShared = ref(false)
 const emergencySent = ref(false)
+const ratingOpen = ref(false)
+const ratingSaved = ref(false)
 const activeService = computed(() => state.selectedTechnician
   ? { ...state.selectedTechnician, category: state.selectedCategory?.name ?? 'Servicio técnico' }
   : {
@@ -135,6 +182,10 @@ const activeService = computed(() => state.selectedTechnician
       specialty: 'Electricista certificado',
       category: 'Revisión eléctrica',
       avatarUrl: 'https://i.pravatar.cc/100?img=12',
+      rating: 4.8,
+      jobsCompleted: 312,
+      price: 50,
+      distance: '1.2 km',
     })
 const activeQrImage = computed(() => {
   const data = encodeURIComponent(`Plataforma de Confianza   - Tecnicos del Hogar  - ConfiaHogar|tecnico:${activeService.value.id}|servicio-en-curso`)
@@ -145,4 +196,14 @@ const averageRating = computed(() => {
   const total = services.value.reduce((sum, service) => sum + service.rating, 0)
   return (total / services.value.length).toFixed(1)
 })
+
+function saveRating(review: TechnicianReview) {
+  const saved = state.selectedTechnician
+    ? addCompletedService(review)
+    : addCompletedService(review, activeService.value, activeService.value.category)
+
+  if (!saved) return
+  ratingSaved.value = true
+  ratingOpen.value = false
+}
 </script>

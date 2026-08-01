@@ -294,7 +294,7 @@ import { useAppState } from "@/store/state";
 import type { Message } from "@/store/state";
 
 const router = useRouter();
-const { state, addMessage, setViewState } = useAppState();
+const { state, addMessage } = useAppState();
 
 const tech = computed(() => state.selectedTechnician);
 const messages = computed(() => state.messages);
@@ -434,7 +434,6 @@ function formatTime(d: Date) {
 }
 
 function finish() {
-  setViewState("validation");
   router.push("/validation");
 }
 

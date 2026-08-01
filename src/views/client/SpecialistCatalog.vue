@@ -53,7 +53,7 @@
           :class="activeFilter === filter
             ? 'border-teal-600 bg-teal-600 text-white'
             : 'border-slate-200 bg-white text-slate-600'"
-          @click="activeFilter = filter"
+          @click="updateFilter(filter)"
         >
           {{ filter }}
         </button>
@@ -122,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppState, type Technician } from '@/store/state'
 import { CATEGORIES, MOCK_TECHNICIANS } from '@/data/categories'
@@ -136,11 +136,20 @@ type SpecialistProfile = Technician & {
 
 const router = useRouter()
 const route = useRoute()
-const { setCategory, setTechnician, setViewState } = useAppState()
+const { setCategory, setTechnician } = useAppState()
 const query = ref('')
-const requestedSpecialty = typeof route.query.specialty === 'string' ? route.query.specialty : 'Todos'
-const activeFilter = ref(CATEGORIES.some((category) => category.name === requestedSpecialty) ? requestedSpecialty : 'Todos')
+const activeFilter = ref('Todos')
 const filters = ['Todos', ...CATEGORIES.map((category) => category.name)]
+
+watch(
+  () => route.query.specialty,
+  (specialty) => {
+    activeFilter.value = typeof specialty === 'string' && filters.includes(specialty)
+      ? specialty
+      : 'Todos'
+  },
+  { immediate: true },
+)
 
 const profiles: SpecialistProfile[] = [
   {
@@ -227,6 +236,13 @@ const filteredProfiles = computed(() => {
   })
 })
 
+function updateFilter(filter: string) {
+  const nextQuery = { ...route.query }
+  if (filter === 'Todos') delete nextQuery.specialty
+  else nextQuery.specialty = filter
+  router.replace({ query: nextQuery })
+}
+
 function requestProfile(profile: SpecialistProfile) {
   setTechnician(profile)
   const category = CATEGORIES.find((item) => item.name === profile.category)
@@ -235,7 +251,6 @@ function requestProfile(profile: SpecialistProfile) {
     icon: 'home_repair_service',
     placeholder: `Describe el trabajo que quieres solicitar a ${profile.name}...`,
   })
-  setViewState('request')
   router.push('/request')
 }
 </script>

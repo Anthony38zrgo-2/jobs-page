@@ -1,4 +1,5 @@
 <template>
+  <div>
   <!-- ─── Security badge modal ───────────────────────────────────────────── -->
   <Teleport to="body">
     <Transition name="fade">
@@ -118,6 +119,7 @@
         </button>
       </div>
     </div>
+  </div>
   </div>
 </template>
 

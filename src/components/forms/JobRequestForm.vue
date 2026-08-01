@@ -191,7 +191,7 @@ import { useAppState } from '@/store/state'
 
 // ─── State ──────────────────────────────────────────────────────────────────
 const router = useRouter()
-const { state, setJobDescription, setUploadedFile, setViewState } = useAppState()
+const { state, setJobDescription, setUploadedFile } = useAppState()
 
 const selectedCategory = computed(() => state.selectedCategory)
 const selectedTechnician = computed(() => state.selectedTechnician)
@@ -242,7 +242,6 @@ function clearFile() {
 function submit() {
   if (!description.value.trim()) return
   setJobDescription(description.value)
-  setViewState('radar')
   router.push('/radar')
 }
 </script>

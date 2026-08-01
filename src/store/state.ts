@@ -1,5 +1,5 @@
 // src/store/state.ts
-import { reactive, readonly } from 'vue'
+import { reactive, readonly, watch } from 'vue'
 
 // ─── Domain types ──────────────────────────────────────────────────────────────
 
@@ -44,20 +44,9 @@ export interface TechnicianReview {
   recommendation: string
 }
 
-export type ViewState =
-  | 'home'
-  | 'request'
-  | 'radar'
-  | 'chat'
-  | 'validation'
-  | 'catalog'
-  | 'history'
-  | 'technician-registration'
-
 // ─── Initial state ─────────────────────────────────────────────────────────────
 
-const state = reactive<{
-  viewState: ViewState
+interface AppState {
   selectedCategory: Category | null
   jobDescription: string
   uploadedFile: string | null
@@ -66,8 +55,12 @@ const state = reactive<{
   messageIdCounter: number
   otpCode: string
   completedServices: ServiceRecord[]
-}>({
-  viewState: 'home',
+}
+
+const STORAGE_KEY = 'confitec-app-state'
+
+function createInitialState(): AppState {
+  return {
   selectedCategory: null,
   jobDescription: '',
   uploadedFile: null,
@@ -75,29 +68,66 @@ const state = reactive<{
   messages: [],
   messageIdCounter: 0,
   otpCode: '',
-  completedServices: [
-    {
-      id: 1,
-      date: '18 jul 2026',
-      category: 'Gasfitería',
-      technician: 'María Torres',
-      technicianAvatar: 'https://i.pravatar.cc/80?img=47',
-      price: 52,
-      rating: 5,
-      recommendation: 'Puntual y dejó todo limpio.',
-    },
-  ],
-})
+    completedServices: [
+      {
+        id: 1,
+        date: '18 jul 2026',
+        category: 'Gasfitería',
+        technician: 'María Torres',
+        technicianAvatar: 'https://i.pravatar.cc/80?img=47',
+        price: 52,
+        rating: 5,
+        recommendation: 'Puntual y dejó todo limpio.',
+      },
+    ],
+  }
+}
+
+function loadState(): AppState {
+  const initialState = createInitialState()
+  if (typeof window === 'undefined') return initialState
+
+  try {
+    const storedState = window.sessionStorage.getItem(STORAGE_KEY)
+    if (!storedState) return initialState
+
+    const saved = JSON.parse(storedState) as Partial<AppState>
+    return {
+      selectedCategory: saved.selectedCategory ?? null,
+      jobDescription: typeof saved.jobDescription === 'string' ? saved.jobDescription : '',
+      uploadedFile: typeof saved.uploadedFile === 'string' ? saved.uploadedFile : null,
+      selectedTechnician: saved.selectedTechnician ?? null,
+      messages: Array.isArray(saved.messages)
+        ? saved.messages.map((message) => ({ ...message, timestamp: new Date(message.timestamp) }))
+        : [],
+      messageIdCounter: typeof saved.messageIdCounter === 'number' ? saved.messageIdCounter : 0,
+      otpCode: typeof saved.otpCode === 'string' ? saved.otpCode : '',
+      completedServices: Array.isArray(saved.completedServices)
+        ? saved.completedServices
+        : initialState.completedServices,
+    }
+  } catch {
+    window.sessionStorage.removeItem(STORAGE_KEY)
+    return initialState
+  }
+}
+
+const state = reactive<AppState>(loadState())
+
+watch(state, (currentState) => {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(currentState))
+  } catch {
+    // The app remains usable if storage is unavailable or full.
+  }
+}, { deep: true })
 
 // ─── Composable ────────────────────────────────────────────────────────────────
 
 export const useAppState = () => {
   return {
     state: readonly(state) as typeof state,
-
-    setViewState(v: ViewState) {
-      state.viewState = v
-    },
 
     setCategory(c: Category) {
       state.selectedCategory = c
@@ -124,8 +154,12 @@ export const useAppState = () => {
       state.otpCode = code
     },
 
-    addCompletedService(review: TechnicianReview) {
-      const tech = state.selectedTechnician
+    addCompletedService(
+      review: TechnicianReview,
+      technician: Technician | null = state.selectedTechnician,
+      category = state.selectedCategory?.name ?? 'Servicio',
+    ) {
+      const tech = technician
       if (!tech || review.rating < 1 || review.rating > 5) return false
 
       state.completedServices.unshift({
@@ -135,7 +169,7 @@ export const useAppState = () => {
           month: 'short',
           year: 'numeric',
         }).format(new Date()),
-        category: state.selectedCategory?.name ?? 'Servicio',
+        category,
         technician: tech.name,
         technicianAvatar: tech.avatarUrl,
         price: tech.price,
@@ -150,7 +184,6 @@ export const useAppState = () => {
     },
 
     resetAll() {
-      state.viewState = 'home'
       state.selectedCategory = null
       state.jobDescription = ''
       state.uploadedFile = null

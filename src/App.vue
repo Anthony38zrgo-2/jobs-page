@@ -2,7 +2,7 @@
   <MainLayout>
     <RouterView v-slot="{ Component }">
       <Transition name="page" mode="out-in">
-        <component :is="Component" />
+        <component :is="Component" :key="route.fullPath" />
       </Transition>
     </RouterView>
   </MainLayout>
@@ -10,7 +10,10 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { useRoute } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
+
+const route = useRoute()
 </script>
 
 <style>

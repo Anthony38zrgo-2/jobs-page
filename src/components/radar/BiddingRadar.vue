@@ -76,7 +76,7 @@ import { MOCK_TECHNICIANS } from '@/data/categories'
 import TechnicianCard from './TechnicianCard.vue'
 
 const router = useRouter()
-const { state, setTechnician, setViewState } = useAppState()
+const { state, setTechnician } = useAppState()
 
 const selectedCategory = computed(() => state.selectedCategory)
 const selectedTechnician = computed(() => state.selectedTechnician)
@@ -99,7 +99,6 @@ onUnmounted(() => { timers.forEach(clearTimeout) })
 
 function onAccept(tech: Technician) {
   setTechnician(tech)
-  setViewState('chat')
   router.push('/chat')
 }
 

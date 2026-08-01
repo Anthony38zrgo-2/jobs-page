@@ -152,7 +152,7 @@ import type { Category } from "@/store/state";
 import { CATEGORIES } from "@/data/categories";
 
 const router = useRouter();
-const { setCategory, setViewState } = useAppState();
+const { setCategory } = useAppState();
 
 const categories = CATEGORIES;
 const quickActions = [
@@ -173,7 +173,6 @@ const trustItems = [
 
 function select(cat: Category) {
   setCategory(cat);
-  setViewState("catalog");
   router.push({ path: "/specialists", query: { specialty: cat.name } });
 }
 </script>
