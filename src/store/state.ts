@@ -39,6 +39,11 @@ export interface ServiceRecord {
   recommendation: string
 }
 
+export interface TechnicianReview {
+  rating: number
+  recommendation: string
+}
+
 export type ViewState =
   | 'home'
   | 'request'
@@ -119,9 +124,9 @@ export const useAppState = () => {
       state.otpCode = code
     },
 
-    addCompletedService(rating: number, recommendation: string) {
+    addCompletedService(review: TechnicianReview) {
       const tech = state.selectedTechnician
-      if (!tech) return
+      if (!tech || review.rating < 1 || review.rating > 5) return false
 
       state.completedServices.unshift({
         id: Date.now(),
@@ -134,9 +139,14 @@ export const useAppState = () => {
         technician: tech.name,
         technicianAvatar: tech.avatarUrl,
         price: tech.price,
-        rating,
-        recommendation,
+        rating: review.rating,
+        recommendation: review.recommendation,
       })
+
+      const previousJobs = tech.jobsCompleted
+      tech.rating = Number(((tech.rating * previousJobs + review.rating) / (previousJobs + 1)).toFixed(1))
+      tech.jobsCompleted = previousJobs + 1
+      return true
     },
 
     resetAll() {
